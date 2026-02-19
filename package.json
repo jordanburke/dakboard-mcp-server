@@ -1,20 +1,26 @@
 {
-  "name": "ts-builds-template",
-  "version": "1.0.0",
-  "description": "A basic template for creating a TypeScript Builds and Publishing it to NPM.",
-  "keywords": [
-    "typescript",
-    "template",
-    "tsdown",
-    "npm"
-  ],
-  "author": "jordan.burke@gmail.com",
-  "license": "MIT",
-  "homepage": "https://github.com/jordanburke/ts-builds-template",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/jordanburke/ts-builds-template"
+  "name": "dakboard-mcp-server",
+  "version": "0.1.0",
+  "description": "A Model Context Protocol (MCP) server for DAKboard - manage screens, blocks, devices, loops, and metrics.",
+  "type": "module",
+  "main": "dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "default": "./dist/index.js"
+    }
   },
+  "bin": {
+    "dakboard-mcp-server": "dist/bin.js"
+  },
+  "files": [
+    "dist/",
+    "README.md",
+    "LICENSE"
+  ],
   "scripts": {
     "validate": "ts-builds validate",
     "format": "ts-builds format",
@@ -25,30 +31,46 @@
     "test": "ts-builds test",
     "test:watch": "ts-builds test:watch",
     "test:coverage": "ts-builds test:coverage",
-    "build": "ts-builds build",
+    "build": "NODE_ENV=production ts-builds build",
     "dev": "ts-builds dev",
-    "prepublishOnly": "pnpm validate"
+    "prepublishOnly": "pnpm validate",
+    "inspect": "pnpm build && npx @modelcontextprotocol/inspector dist/index.js",
+    "start": "pnpm build && npx dakboard-mcp-server",
+    "serve": "pnpm build && node dist/index.js"
+  },
+  "prettier": "ts-builds/prettier",
+  "keywords": [
+    "mcp",
+    "dakboard",
+    "api",
+    "model-context-protocol",
+    "claude",
+    "ai-assistant",
+    "digital-signage",
+    "dashboard",
+    "fastmcp"
+  ],
+  "mcpName": "io.github.jordanburke/dakboard-mcp-server",
+  "author": "Jordan Burke <jordan.burke@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jordanburke/dakboard-mcp-server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jordanburke/dakboard-mcp-server/issues"
+  },
+  "homepage": "https://github.com/jordanburke/dakboard-mcp-server#readme",
+  "dependencies": {
+    "dotenv": "^17.3.1",
+    "fastmcp": "^3.33.0",
+    "functype": "^0.46.2",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@types/node": "^24.10.13",
     "ts-builds": "^2.4.0",
     "tsdown": "^0.20.3"
   },
-  "type": "module",
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
-  },
-  "files": [
-    "lib",
-    "dist"
-  ],
-  "prettier": "ts-builds/prettier",
   "packageManager": "pnpm@10.30.0+sha512.2b5753de015d480eeb88f5b5b61e0051f05b4301808a82ec8b840c9d2adf7748eb352c83f5c1593ca703ff1017295bc3fdd3119abb9686efc96b9fcb18200937"
 }

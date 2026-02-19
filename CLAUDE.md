@@ -4,87 +4,81 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a TypeScript library template designed to be cloned/forked for creating new npm packages. It uses the `ts-builds` toolchain for standardized build scripts with ESM output.
-
-**Template Usage**: See STANDARDIZATION_GUIDE.md for applying this pattern to other TypeScript projects.
+MCP (Model Context Protocol) server for the DAKboard API — manage digital dashboard screens, blocks, devices, loops, and custom metrics. Built with FastMCP + Zod + functype for functional programming patterns.
 
 ## Development Commands
 
-All commands delegate to `ts-builds` for consistency across projects:
-
 ```bash
-pnpm validate        # Main command: format + lint + test + build (use before commits)
-
+pnpm validate        # Main command: format + lint + typecheck + test + build (use before commits)
 pnpm format          # Format code with Prettier
-pnpm format:check    # Check formatting only
-
 pnpm lint            # Fix ESLint issues
-pnpm lint:check      # Check ESLint issues only
-
 pnpm test            # Run tests once
 pnpm test:watch      # Run tests in watch mode
-pnpm test:coverage   # Run tests with coverage
-
 pnpm build           # Production build (outputs to dist/)
-pnpm dev             # Development build with watch mode
-
 pnpm typecheck       # Check TypeScript types
+pnpm inspect         # Test tools via MCP Inspector
 ```
 
 ### Running a Single Test
 
 ```bash
-pnpm test -- --testNamePattern="pattern"    # Filter by test name
-pnpm test -- test/specific.spec.ts          # Run specific file
+pnpm test -- --testNamePattern="pattern"
+pnpm test -- src/tools/__tests__/screen-tools.test.ts
 ```
 
 ## Architecture
 
-### Build System: ts-builds + tsdown
+### Stack
 
-- **ts-builds**: Centralized toolchain package providing all build scripts
-- **tsdown**: Underlying bundler configured via `ts-builds/tsdown`
-- **Configuration**: `tsdown.config.ts` imports default config from ts-builds
-- **TypeScript**: `tsconfig.json` extends `ts-builds/tsconfig`
-- **Prettier**: Uses `ts-builds/prettier` shared config
+- **FastMCP**: MCP server framework with Zod schema validation
+- **functype**: Functional programming (Either for errors, Brand for type-safe IDs, Option for nullables, Try for exception wrapping)
+- **ts-builds + tsdown**: Build toolchain with dual entry points (index.js + bin.js)
 
-### Output Format
+### File Structure
 
-- **dist/**: Production builds containing:
-  - `index.js` - ES module format
-  - `index.d.ts` - TypeScript declarations
-- **lib/**: Development builds (also published)
-
-### Package Exports
-
-```json
-{
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "default": "./dist/index.js"
-    }
-  }
-}
+```
+src/
+  index.ts                    # FastMCP server setup + 16 tool registrations
+  bin.ts                      # CLI entry point (stdio transport)
+  types.ts                    # Domain types + API response types
+  brands.ts                   # Branded types: ScreenId, BlockId, LoopId, DeviceId, MetricName, ApiKey
+  client/
+    dakboard-client.ts        # API client factory — all methods return Either<DakboardApiError, T>
+  tools/
+    index.ts                  # Barrel export
+    screen-tools.ts           # list_screens, get_screen, update_screen
+    block-tools.ts            # list_blocks, get_block, update_block
+    loop-tools.ts             # list_loops, get_loop
+    device-tools.ts           # list_devices, get_device, update_device
+    metric-tools.ts           # list/get/create/delete metrics + data points
+  utils/
+    formatters.ts             # Markdown response formatters using Option for nullable fields
 ```
 
-### Testing: Vitest
+### Key Patterns
 
-- Tests located in `test/*.spec.ts`
-- Uses Vitest with configuration from ts-builds
-- Coverage via v8 provider
+- **Either<DakboardApiError, T>**: Every client method returns Either — Left for errors, Right for success. Tool handlers use `result.fold()` to convert.
+- **Brand<K, string>**: Compile-time ID safety — `ScreenId`, `BlockId`, etc. prevent mixing up IDs at zero runtime cost.
+- **Factory function client**: No classes. API key captured in closure, frozen return object. Singleton via `initializeDakboardClient()` / `getDakboardClient()`.
+- **Form-encoded PUT bodies**: DAKboard API uses `application/x-www-form-urlencoded` for updates.
+- **API key as query param**: `?api_key=...` appended to every request.
+
+### Environment Variables
+
+- `DAKBOARD_API_KEY` (required) — DAKboard API key
+- `TRANSPORT_TYPE` — `stdio` (default) or `httpStream`
+- `PORT` — HTTP port (default: 3000)
+- `HOST` — HTTP host (default: 127.0.0.1)
 
 ## Key Files
 
-- `src/index.ts` - Main library entry point
-- `test/*.spec.ts` - Test files
-- `tsdown.config.ts` - Build config (imports from ts-builds)
-- `tsconfig.json` - TypeScript config (extends ts-builds)
-- `.claude/skills/ts-builds-template/` - Claude Code skill for bootstrapping libraries from this template
+- `src/index.ts` — FastMCP server with all 16 tool registrations
+- `src/bin.ts` — CLI entry point
+- `src/client/dakboard-client.ts` — Functional API client
+- `src/brands.ts` — Branded type constructors
+- `src/types.ts` — All domain types
+- `server.json` — MCP server manifest
+- `.mcp.json` — Local MCP client config
 
 ## Publishing
 

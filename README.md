@@ -1,112 +1,155 @@
-## ts-builds-template
+# DAKboard MCP Server
 
-[![Node.js CI](https://github.com/jordanburke/ts-builds-template/actions/workflows/node.js.yml/badge.svg)](https://github.com/jordanburke/ts-builds-template/actions/workflows/node.js.yml)
-[![npm version](https://img.shields.io/npm/v/ts-builds-template.svg)](https://www.npmjs.com/package/ts-builds-template)
+A Model Context Protocol (MCP) server for managing DAKboard digital dashboards - screens, blocks, devices, loops, and metrics.
 
-A modern TypeScript library template with standardized build scripts and tooling.
-
-## Features
-
-- **Modern Build System**: [ts-builds](https://github.com/jordanburke/ts-builds) + [tsdown](https://tsdown.dev/) for fast bundling
-- **Testing**: [Vitest](https://vitest.dev/) with coverage reporting
-- **Code Quality**: ESLint + Prettier with automatic formatting and fixing
-- **ESM Output**: ES module output with proper TypeScript declarations
-- **Standardized Scripts**: Consistent commands via ts-builds across all projects
+[![npm version](https://img.shields.io/npm/v/dakboard-mcp-server.svg)](https://www.npmjs.com/package/dakboard-mcp-server)
+[![npm downloads](https://img.shields.io/npm/dm/dakboard-mcp-server.svg)](https://www.npmjs.com/package/dakboard-mcp-server)
+[![GitHub stars](https://img.shields.io/github/stars/jordanburke/dakboard-mcp-server.svg?style=flat&logo=github)](https://github.com/jordanburke/dakboard-mcp-server/stargazers)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
 ## Quick Start
 
-1. **Use this template** to create a new repository
-2. **Clone your new repository**
-3. **Install dependencies**: `pnpm install`
-4. **Start developing**: `pnpm dev` (builds with watch mode)
-5. **Before committing**: `pnpm validate` (format + lint + test + build)
-
-## Development Commands
-
-### Pre-Checkin Command
+### Option 1: NPX (No install required)
 
 ```bash
-pnpm validate  # Main command: format, lint, test, and build everything
+DAKBOARD_API_KEY=your_api_key npx dakboard-mcp-server
 ```
 
-### Individual Commands
+Or add to your MCP config (Claude Desktop, Cursor, etc.):
+
+```json
+{
+  "mcpServers": {
+    "dakboard": {
+      "command": "npx",
+      "args": ["dakboard-mcp-server"],
+      "env": {
+        "DAKBOARD_API_KEY": "your_api_key"
+      }
+    }
+  }
+}
+```
+
+### Option 2: Claude Code
 
 ```bash
-# Formatting
-pnpm format        # Format code with Prettier
-pnpm format:check  # Check formatting without writing
-
-# Linting
-pnpm lint          # Fix ESLint issues
-pnpm lint:check    # Check ESLint issues without fixing
-
-# Testing
-pnpm test          # Run tests once
-pnpm test:watch    # Run tests in watch mode
-pnpm test:coverage # Run tests with coverage report
-
-# Building
-pnpm build         # Production build
-pnpm dev           # Development mode with watch
-
-# Type Checking
-pnpm typecheck     # Check TypeScript types
+claude mcp add --transport stdio dakboard -- npx dakboard-mcp-server
 ```
 
-## Publishing
-
-The template automatically runs `pnpm validate` before publishing via the `prepublishOnly` script.
+Then set the environment variable in your shell before launching Claude Code:
 
 ```bash
-npm version patch|minor|major
-npm publish --access public
+export DAKBOARD_API_KEY=your_api_key
 ```
 
-## Project Structure
+## Tools
 
-```
-src/
-├── index.ts          # Main library entry point
-test/
-├── *.spec.ts         # Test files
-dist/                 # Built output (ES module + types)
-```
+### Screens
 
-## Tooling
+| Tool            | Description                                                          |
+| --------------- | -------------------------------------------------------------------- |
+| `list_screens`  | List all DAKboard screens                                            |
+| `get_screen`    | Get detailed screen information including settings                   |
+| `update_screen` | Update screen settings (name, orientation, dimensions, refresh rate) |
 
-- **Build**: [ts-builds](https://github.com/jordanburke/ts-builds) - Centralized TypeScript toolchain
-- **Bundler**: [tsdown](https://tsdown.dev/) - Fast TypeScript bundler (successor to tsup)
-- **Test**: [Vitest](https://vitest.dev/) - Fast unit test framework
-- **Lint**: [ESLint](https://eslint.org/) with TypeScript support
-- **Format**: [Prettier](https://prettier.io/) with ESLint integration
-- **Package Manager**: [pnpm](https://pnpm.io/) for fast, efficient installs
+### Blocks
 
-## Claude Code Skill
+| Tool           | Description                                          |
+| -------------- | ---------------------------------------------------- |
+| `list_blocks`  | List all blocks on a screen                          |
+| `get_block`    | Get detailed block information                       |
+| `update_block` | Update block position, size, content, and visibility |
 
-This repository includes a Claude Code skill for bootstrapping new TypeScript libraries from this template:
+### Loops
 
-**Location**: `.claude/skills/ts-builds-template/`
+| Tool         | Description                                |
+| ------------ | ------------------------------------------ |
+| `list_loops` | List all screen loops                      |
+| `get_loop`   | Get loop details including screen rotation |
 
-**Usage**: When using Claude Code, the skill provides guidance for:
+### Devices
 
-- Cloning and customizing this template for a new library
-- Understanding the project structure and dev workflow
-- Publishing to npm
+| Tool            | Description                                                |
+| --------------- | ---------------------------------------------------------- |
+| `list_devices`  | List all DAKboard devices                                  |
+| `get_device`    | Get detailed device information                            |
+| `update_device` | Update device settings (name, IP address, assigned screen) |
 
-**Installation** (for use in other projects):
+### Metrics
+
+| Tool                        | Description                                |
+| --------------------------- | ------------------------------------------ |
+| `list_metrics`              | List all custom metrics                    |
+| `get_metric`                | Get a metric with its data points          |
+| `create_metric_data_points` | Create data points for a metric            |
+| `delete_metric`             | Delete a metric and all its data points    |
+| `delete_metric_data_points` | Delete data points at a specific timestamp |
+
+### Utility
+
+| Tool                       | Description                              |
+| -------------------------- | ---------------------------------------- |
+| `test_dakboard_connection` | Test server connection and configuration |
+
+## Configuration
+
+### Environment Variables
+
+| Variable           | Required | Default     | Description                             |
+| ------------------ | -------- | ----------- | --------------------------------------- |
+| `DAKBOARD_API_KEY` | **Yes**  | -           | Your DAKboard API key                   |
+| `TRANSPORT_TYPE`   | No       | `stdio`     | Transport mode: `stdio` or `httpStream` |
+| `PORT`             | No       | `3000`      | Port for HTTP server mode               |
+| `HOST`             | No       | `127.0.0.1` | Host for HTTP server mode               |
+
+### Getting Your API Key
+
+1. Log in to [DAKboard](https://dakboard.com)
+2. Go to **Settings** > **API**
+3. Copy your API key
+
+## Development
+
+### Commands
 
 ```bash
-# Copy the skill to your Claude Code skills directory
-cp -r .claude/skills/ts-builds-template ~/.claude/skills/
+pnpm install        # Install dependencies
+pnpm build          # Build TypeScript
+pnpm dev            # Build with watch mode
+pnpm test           # Run tests
+pnpm lint           # Lint code
+pnpm format         # Format code
+pnpm validate       # Format + lint + test + build (pre-commit check)
+pnpm inspect        # Build and launch MCP Inspector
 ```
 
-**Related Skills**: For tooling configuration, migration guides, and standardizing existing projects, see the [ts-builds](https://github.com/jordanburke/ts-builds) skill.
+### CLI Options
 
-**References**:
+```bash
+npx dakboard-mcp-server --version    # Show version
+npx dakboard-mcp-server --help       # Show help
+```
 
-- [CLAUDE.md](./CLAUDE.md) - Development guidance for this project
-- [.claude/skills/ts-builds-template/](./.claude/skills/ts-builds-template/) - Complete skill documentation
+## HTTP Server Mode
 
----
+For web-based clients, use HTTP transport:
 
-_This template is based on the earlier work of https://github.com/orabazu/tsup-library-template but updated with modern tooling and standardized scripts._
+```bash
+DAKBOARD_API_KEY=your_api_key TRANSPORT_TYPE=httpStream PORT=3000 node dist/index.js
+```
+
+The server will be available at `http://127.0.0.1:3000/mcp`.
+
+## Architecture
+
+Built with:
+
+- [FastMCP](https://github.com/jlowin/fastmcp) - MCP server framework
+- [Zod](https://zod.dev/) - Schema validation for tool parameters
+- [functype](https://functype.org/) - Functional programming (Either for errors, Branded types for IDs)
+- [ts-builds](https://github.com/jordanburke/ts-builds) - Standardized TypeScript build toolchain
+
+## License
+
+MIT
