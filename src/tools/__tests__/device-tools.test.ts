@@ -30,8 +30,9 @@ describe("device-tools", () => {
     )
 
     const result = await listDevices()
-    expect(result).toContain("DAKboard Devices")
-    expect(result).toContain("Kitchen Pi")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("DAKboard Devices")
+    expect(result.orThrow()).toContain("Kitchen Pi")
   })
 
   it("should get device detail", async () => {
@@ -51,9 +52,10 @@ describe("device-tools", () => {
     )
 
     const result = await getDevice({ device_id: "d1" })
-    expect(result).toContain("Kitchen Pi")
-    expect(result).toContain("192.168.1.100")
-    expect(result).toContain("Raspberry Pi 4")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("Kitchen Pi")
+    expect(result.orThrow()).toContain("192.168.1.100")
+    expect(result.orThrow()).toContain("Raspberry Pi 4")
   })
 
   it("should update device", async () => {
@@ -71,13 +73,19 @@ describe("device-tools", () => {
     )
 
     const result = await updateDevice({ device_id: "d1", name: "Updated Pi" })
-    expect(result).toContain("updated successfully")
-    expect(result).toContain("Updated Pi")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("updated successfully")
+    expect(result.orThrow()).toContain("Updated Pi")
   })
 
-  it("should throw UserError on API failure", async () => {
+  it("should return Left on API failure", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("Error", { status: 403, statusText: "Forbidden" }))
 
-    await expect(listDevices()).rejects.toThrow("Failed to list devices")
+    const result = await listDevices()
+    expect(result.isLeft()).toBe(true)
+    result.fold(
+      (e) => expect(e.message).toContain("Failed to list devices"),
+      () => expect.unreachable("should be Left"),
+    )
   })
 })

@@ -21,8 +21,9 @@ describe("loop-tools", () => {
     )
 
     const result = await listLoops()
-    expect(result).toContain("DAKboard Loops")
-    expect(result).toContain("Daily")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("DAKboard Loops")
+    expect(result.orThrow()).toContain("Daily")
   })
 
   it("should get loop detail", async () => {
@@ -40,14 +41,20 @@ describe("loop-tools", () => {
     )
 
     const result = await getLoop({ loop_id: "l1" })
-    expect(result).toContain("Daily")
-    expect(result).toContain("Screen s1")
-    expect(result).toContain("30s")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("Daily")
+    expect(result.orThrow()).toContain("Screen s1")
+    expect(result.orThrow()).toContain("30s")
   })
 
-  it("should throw UserError on API failure", async () => {
+  it("should return Left on API failure", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("Error", { status: 500, statusText: "Server Error" }))
 
-    await expect(listLoops()).rejects.toThrow("Failed to list loops")
+    const result = await listLoops()
+    expect(result.isLeft()).toBe(true)
+    result.fold(
+      (e) => expect(e.message).toContain("Failed to list loops"),
+      () => expect.unreachable("should be Left"),
+    )
   })
 })

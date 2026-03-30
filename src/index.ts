@@ -1,5 +1,7 @@
 import dotenv from "dotenv"
+import type { UserError } from "fastmcp"
 import { FastMCP } from "fastmcp"
+import type { Either } from "functype/either"
 import { z } from "zod"
 
 import { ApiKey } from "./brands"
@@ -40,6 +42,16 @@ const setupDakboardClient = () => {
   console.error("[Setup] DAKboard client initialized")
 }
 
+/* eslint-disable functype/prefer-either -- boundary: converts Either to FastMCP's throw-based error signaling */
+const unwrapResult = <T>(result: Either<UserError, T>): T =>
+  result.fold(
+    (e) => {
+      throw e
+    },
+    (v) => v,
+  )
+/* eslint-enable functype/prefer-either */
+
 const server = new FastMCP({
   name: "dakboard-mcp-server",
   version: VERSION,
@@ -58,9 +70,13 @@ server.addTool({
   name: "test_dakboard_connection",
   description: "Test the DAKboard MCP Server connection and configuration",
   parameters: z.object({}),
+  // eslint-disable-next-line @typescript-eslint/require-await
   execute: async () => {
     const client = getDakboardClient()
-    const hasClient = client ? "Yes" : "No"
+    const hasClient = client.fold(
+      () => "No",
+      () => "Yes",
+    )
 
     return `DAKboard MCP Server Status:
 - Server: Running
@@ -76,7 +92,7 @@ server.addTool({
   name: "list_screens",
   description: "List all DAKboard screens",
   parameters: z.object({}),
-  execute: async () => listScreens(),
+  execute: async () => unwrapResult(await listScreens()),
 })
 
 server.addTool({
@@ -85,7 +101,7 @@ server.addTool({
   parameters: z.object({
     screen_id: z.string().describe("The DAKboard screen ID"),
   }),
-  execute: async (args) => getScreen(args),
+  execute: async (args) => unwrapResult(await getScreen(args)),
 })
 
 server.addTool({
@@ -100,7 +116,7 @@ server.addTool({
     is_default: z.number().min(0).max(1).optional().describe("Set as default screen (0 or 1)"),
     refresh: z.number().optional().describe("Refresh interval in seconds"),
   }),
-  execute: async (args) => updateScreen(args),
+  execute: async (args) => unwrapResult(await updateScreen(args)),
 })
 
 // Block tools
@@ -110,7 +126,7 @@ server.addTool({
   parameters: z.object({
     screen_id: z.string().describe("The DAKboard screen ID"),
   }),
-  execute: async (args) => listBlocks(args),
+  execute: async (args) => unwrapResult(await listBlocks(args)),
 })
 
 server.addTool({
@@ -120,7 +136,7 @@ server.addTool({
     screen_id: z.string().describe("The DAKboard screen ID"),
     block_id: z.string().describe("The block ID"),
   }),
-  execute: async (args) => getBlock(args),
+  execute: async (args) => unwrapResult(await getBlock(args)),
 })
 
 server.addTool({
@@ -139,7 +155,7 @@ server.addTool({
     text: z.string().optional().describe("Text content"),
     url: z.string().optional().describe("URL content"),
   }),
-  execute: async (args) => updateBlock(args),
+  execute: async (args) => unwrapResult(await updateBlock(args)),
 })
 
 // Loop tools
@@ -147,7 +163,7 @@ server.addTool({
   name: "list_loops",
   description: "List all DAKboard screen loops",
   parameters: z.object({}),
-  execute: async () => listLoops(),
+  execute: async () => unwrapResult(await listLoops()),
 })
 
 server.addTool({
@@ -156,7 +172,7 @@ server.addTool({
   parameters: z.object({
     loop_id: z.string().describe("The loop ID"),
   }),
-  execute: async (args) => getLoop(args),
+  execute: async (args) => unwrapResult(await getLoop(args)),
 })
 
 // Device tools
@@ -164,7 +180,7 @@ server.addTool({
   name: "list_devices",
   description: "List all DAKboard devices",
   parameters: z.object({}),
-  execute: async () => listDevices(),
+  execute: async () => unwrapResult(await listDevices()),
 })
 
 server.addTool({
@@ -173,7 +189,7 @@ server.addTool({
   parameters: z.object({
     device_id: z.string().describe("The device ID"),
   }),
-  execute: async (args) => getDevice(args),
+  execute: async (args) => unwrapResult(await getDevice(args)),
 })
 
 server.addTool({
@@ -185,7 +201,7 @@ server.addTool({
     ip_addr: z.string().optional().describe("Device IP address"),
     screen_id: z.string().optional().describe("Assign device to a screen ID"),
   }),
-  execute: async (args) => updateDevice(args),
+  execute: async (args) => unwrapResult(await updateDevice(args)),
 })
 
 // Metric tools
@@ -193,7 +209,7 @@ server.addTool({
   name: "list_metrics",
   description: "List all DAKboard custom metrics",
   parameters: z.object({}),
-  execute: async () => listMetrics(),
+  execute: async () => unwrapResult(await listMetrics()),
 })
 
 server.addTool({
@@ -202,7 +218,7 @@ server.addTool({
   parameters: z.object({
     metric_name: z.string().describe("The metric name"),
   }),
-  execute: async (args) => getMetric(args),
+  execute: async (args) => unwrapResult(await getMetric(args)),
 })
 
 server.addTool({
@@ -220,7 +236,7 @@ server.addTool({
       )
       .describe("Array of data points to create"),
   }),
-  execute: async (args) => createMetricDataPoints(args),
+  execute: async (args) => unwrapResult(await createMetricDataPoints(args)),
 })
 
 server.addTool({
@@ -229,7 +245,7 @@ server.addTool({
   parameters: z.object({
     metric_name: z.string().describe("The metric name to delete"),
   }),
-  execute: async (args) => deleteMetric(args),
+  execute: async (args) => unwrapResult(await deleteMetric(args)),
 })
 
 server.addTool({
@@ -239,17 +255,18 @@ server.addTool({
     metric_name: z.string().describe("The metric name"),
     timestamp: z.string().describe("ISO timestamp of data points to delete"),
   }),
-  execute: async (args) => deleteMetricDataPoints(args),
+  execute: async (args) => unwrapResult(await deleteMetricDataPoints(args)),
 })
 
 // Initialize and start
 async function main() {
+  // eslint-disable-next-line functype/prefer-either -- top-level server startup boundary
   try {
     setupDakboardClient()
 
     const useHttp = process.env.TRANSPORT_TYPE === "httpStream" || process.env.TRANSPORT_TYPE === "http"
-    const port = parseInt(process.env.PORT || "3000")
-    const host = process.env.HOST || "127.0.0.1"
+    const port = parseInt(process.env.PORT ?? "3000")
+    const host = process.env.HOST ?? "127.0.0.1"
 
     if (useHttp) {
       console.error(`[Setup] Starting HTTP server on ${host}:${port}`)
@@ -268,12 +285,12 @@ async function main() {
   }
 }
 
-process.on("SIGINT", async () => {
+process.on("SIGINT", () => {
   console.error("[Shutdown] Shutting down DAKboard MCP Server...")
   process.exit(0)
 })
 
-process.on("SIGTERM", async () => {
+process.on("SIGTERM", () => {
   console.error("[Shutdown] Shutting down DAKboard MCP Server...")
   process.exit(0)
 })

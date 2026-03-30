@@ -22,8 +22,9 @@ describe("screen-tools", () => {
     )
 
     const result = await listScreens()
-    expect(result).toContain("DAKboard Screens")
-    expect(result).toContain("Main")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("DAKboard Screens")
+    expect(result.orThrow()).toContain("Main")
   })
 
   it("should get screen detail", async () => {
@@ -46,8 +47,9 @@ describe("screen-tools", () => {
     )
 
     const result = await getScreen({ screen_id: "1" })
-    expect(result).toContain("Main")
-    expect(result).toContain("1920x1080")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("Main")
+    expect(result.orThrow()).toContain("1920x1080")
   })
 
   it("should update screen", async () => {
@@ -70,13 +72,19 @@ describe("screen-tools", () => {
     )
 
     const result = await updateScreen({ screen_id: "1", name: "Updated" })
-    expect(result).toContain("updated successfully")
-    expect(result).toContain("Updated")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("updated successfully")
+    expect(result.orThrow()).toContain("Updated")
   })
 
-  it("should throw UserError on API failure", async () => {
+  it("should return Left on API failure", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("Not Found", { status: 404, statusText: "Not Found" }))
 
-    await expect(listScreens()).rejects.toThrow("Failed to list screens")
+    const result = await listScreens()
+    expect(result.isLeft()).toBe(true)
+    result.fold(
+      (e) => expect(e.message).toContain("Failed to list screens"),
+      () => expect.unreachable("should be Left"),
+    )
   })
 })

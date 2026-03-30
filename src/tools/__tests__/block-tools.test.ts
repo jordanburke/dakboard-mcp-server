@@ -36,8 +36,9 @@ describe("block-tools", () => {
     )
 
     const result = await listBlocks({ screen_id: "s1" })
-    expect(result).toContain("Blocks for Screen s1")
-    expect(result).toContain("Weather")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("Blocks for Screen s1")
+    expect(result.orThrow()).toContain("Weather")
   })
 
   it("should get block detail", async () => {
@@ -62,8 +63,9 @@ describe("block-tools", () => {
     )
 
     const result = await getBlock({ screen_id: "s1", block_id: "b1" })
-    expect(result).toContain("Weather")
-    expect(result).toContain("Current temp: 72F")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("Weather")
+    expect(result.orThrow()).toContain("Current temp: 72F")
   })
 
   it("should update block", async () => {
@@ -87,13 +89,19 @@ describe("block-tools", () => {
     )
 
     const result = await updateBlock({ screen_id: "s1", block_id: "b1", name: "Updated Weather", w: 500 })
-    expect(result).toContain("updated successfully")
-    expect(result).toContain("Updated Weather")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("updated successfully")
+    expect(result.orThrow()).toContain("Updated Weather")
   })
 
-  it("should throw UserError on API failure", async () => {
+  it("should return Left on API failure", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("Error", { status: 500, statusText: "Server Error" }))
 
-    await expect(listBlocks({ screen_id: "s1" })).rejects.toThrow("Failed to list blocks")
+    const result = await listBlocks({ screen_id: "s1" })
+    expect(result.isLeft()).toBe(true)
+    result.fold(
+      (e) => expect(e.message).toContain("Failed to list blocks"),
+      () => expect.unreachable("should be Left"),
+    )
   })
 })

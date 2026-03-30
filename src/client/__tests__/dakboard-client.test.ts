@@ -13,24 +13,25 @@ describe("dakboard-client", () => {
   })
 
   it("should initialize and return a client", () => {
-    const client = getDakboardClient()
-    expect(client).toBeDefined()
-    expect(client!.listScreens).toBeTypeOf("function")
-    expect(client!.getScreen).toBeTypeOf("function")
-    expect(client!.updateScreen).toBeTypeOf("function")
-    expect(client!.listBlocks).toBeTypeOf("function")
-    expect(client!.getBlock).toBeTypeOf("function")
-    expect(client!.updateBlock).toBeTypeOf("function")
-    expect(client!.listLoops).toBeTypeOf("function")
-    expect(client!.getLoop).toBeTypeOf("function")
-    expect(client!.listDevices).toBeTypeOf("function")
-    expect(client!.getDevice).toBeTypeOf("function")
-    expect(client!.updateDevice).toBeTypeOf("function")
-    expect(client!.listMetrics).toBeTypeOf("function")
-    expect(client!.getMetric).toBeTypeOf("function")
-    expect(client!.createMetricDataPoints).toBeTypeOf("function")
-    expect(client!.deleteMetric).toBeTypeOf("function")
-    expect(client!.deleteMetricDataPoints).toBeTypeOf("function")
+    const clientOption = getDakboardClient()
+    expect(clientOption.isSome()).toBe(true)
+    const client = clientOption.orThrow()
+    expect(client.listScreens).toBeTypeOf("function")
+    expect(client.getScreen).toBeTypeOf("function")
+    expect(client.updateScreen).toBeTypeOf("function")
+    expect(client.listBlocks).toBeTypeOf("function")
+    expect(client.getBlock).toBeTypeOf("function")
+    expect(client.updateBlock).toBeTypeOf("function")
+    expect(client.listLoops).toBeTypeOf("function")
+    expect(client.getLoop).toBeTypeOf("function")
+    expect(client.listDevices).toBeTypeOf("function")
+    expect(client.getDevice).toBeTypeOf("function")
+    expect(client.updateDevice).toBeTypeOf("function")
+    expect(client.listMetrics).toBeTypeOf("function")
+    expect(client.getMetric).toBeTypeOf("function")
+    expect(client.createMetricDataPoints).toBeTypeOf("function")
+    expect(client.deleteMetric).toBeTypeOf("function")
+    expect(client.deleteMetricDataPoints).toBeTypeOf("function")
   })
 
   it("should return Right on successful API response", async () => {
@@ -40,7 +41,7 @@ describe("dakboard-client", () => {
 
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify(mockScreens), { status: 200 }))
 
-    const client = getDakboardClient()!
+    const client = getDakboardClient().orThrow()
     const result = await client.listScreens()
 
     expect(
@@ -54,7 +55,7 @@ describe("dakboard-client", () => {
   it("should return Left on HTTP error", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("Not Found", { status: 404, statusText: "Not Found" }))
 
-    const client = getDakboardClient()!
+    const client = getDakboardClient().orThrow()
     const result = await client.listScreens()
 
     expect(
@@ -68,7 +69,7 @@ describe("dakboard-client", () => {
   it("should return Left on network error", async () => {
     vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("Connection refused"))
 
-    const client = getDakboardClient()!
+    const client = getDakboardClient().orThrow()
     const result = await client.listScreens()
 
     expect(
@@ -82,7 +83,7 @@ describe("dakboard-client", () => {
   it("should return Left on invalid JSON response", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("not json {{{", { status: 200 }))
 
-    const client = getDakboardClient()!
+    const client = getDakboardClient().orThrow()
     const result = await client.listScreens()
 
     expect(
@@ -96,7 +97,7 @@ describe("dakboard-client", () => {
   it("should handle empty response body", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("", { status: 200 }))
 
-    const client = getDakboardClient()!
+    const client = getDakboardClient().orThrow()
     const result = await client.listScreens()
 
     expect(
@@ -114,7 +115,7 @@ describe("dakboard-client", () => {
       .spyOn(globalThis, "fetch")
       .mockResolvedValue(new Response(JSON.stringify(mockScreen), { status: 200 }))
 
-    const client = getDakboardClient()!
+    const client = getDakboardClient().orThrow()
     const { ScreenId } = await import("../../brands")
     await client.updateScreen(ScreenId("1"), { name: "Updated" })
 
@@ -127,7 +128,7 @@ describe("dakboard-client", () => {
   it("should include api_key as query parameter", async () => {
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("[]", { status: 200 }))
 
-    const client = getDakboardClient()!
+    const client = getDakboardClient().orThrow()
     await client.listScreens()
 
     const [url] = fetchSpy.mock.calls[0]
@@ -135,7 +136,7 @@ describe("dakboard-client", () => {
   })
 
   it("client object should be frozen", () => {
-    const client = getDakboardClient()!
+    const client = getDakboardClient().orThrow()
     expect(Object.isFrozen(client)).toBe(true)
   })
 })

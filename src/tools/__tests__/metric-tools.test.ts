@@ -22,8 +22,9 @@ describe("metric-tools", () => {
     )
 
     const result = await listMetrics()
-    expect(result).toContain("DAKboard Metrics")
-    expect(result).toContain("temperature")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("DAKboard Metrics")
+    expect(result.orThrow()).toContain("temperature")
   })
 
   it("should get metric detail", async () => {
@@ -40,8 +41,9 @@ describe("metric-tools", () => {
     )
 
     const result = await getMetric({ metric_name: "temperature" })
-    expect(result).toContain("temperature")
-    expect(result).toContain("72")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("temperature")
+    expect(result.orThrow()).toContain("72")
   })
 
   it("should create metric data points", async () => {
@@ -51,16 +53,18 @@ describe("metric-tools", () => {
       metric_name: "temperature",
       data_points: [{ value: 72 }],
     })
-    expect(result).toContain("Successfully created 1 data point(s)")
-    expect(result).toContain("temperature")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("Successfully created 1 data point(s)")
+    expect(result.orThrow()).toContain("temperature")
   })
 
   it("should delete metric", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("", { status: 200 }))
 
     const result = await deleteMetric({ metric_name: "temperature" })
-    expect(result).toContain("deleted")
-    expect(result).toContain("temperature")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("deleted")
+    expect(result.orThrow()).toContain("temperature")
   })
 
   it("should delete metric data points", async () => {
@@ -70,13 +74,19 @@ describe("metric-tools", () => {
       metric_name: "temperature",
       timestamp: "2024-06-15T12:00:00Z",
     })
-    expect(result).toContain("deleted")
-    expect(result).toContain("temperature")
+    expect(result.isRight()).toBe(true)
+    expect(result.orThrow()).toContain("deleted")
+    expect(result.orThrow()).toContain("temperature")
   })
 
-  it("should throw UserError on API failure", async () => {
+  it("should return Left on API failure", async () => {
     vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response("Error", { status: 500, statusText: "Server Error" }))
 
-    await expect(listMetrics()).rejects.toThrow("Failed to list metrics")
+    const result = await listMetrics()
+    expect(result.isLeft()).toBe(true)
+    result.fold(
+      (e) => expect(e.message).toContain("Failed to list metrics"),
+      () => expect.unreachable("should be Left"),
+    )
   })
 })

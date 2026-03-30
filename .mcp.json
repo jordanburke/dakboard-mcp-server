@@ -4,7 +4,7 @@
       "command": "node",
       "args": ["./dist/index.js"],
       "env": {
-        "DAKBOARD_API_KEY": ""
+        "DAKBOARD_API_KEY": "${DAKBOARD_API_KEY}"
       }
     }
   }

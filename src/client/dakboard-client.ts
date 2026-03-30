@@ -1,4 +1,6 @@
-import { Either, Left, Right } from "functype/either"
+import { None, type Option, Some } from "functype"
+import type { Either } from "functype/either"
+import { Left, Right } from "functype/either"
 import { Try } from "functype/try"
 
 import type { ApiKey } from "../brands"
@@ -40,7 +42,8 @@ const createDakboardClient = (apiKey: ApiKey) => {
       }
 
       if (body && (method === "PUT" || method === "POST")) {
-        ;(options.headers as Record<string, string>)["Content-Type"] = "application/x-www-form-urlencoded"
+        const headers = options.headers as Record<string, string>
+        headers["Content-Type"] = "application/x-www-form-urlencoded"
         options.body = new URLSearchParams(
           Object.entries(body).reduce<Record<string, string>>((acc, [key, value]) => {
             if (value !== undefined && value !== null) {
@@ -58,7 +61,8 @@ const createDakboardClient = (apiKey: ApiKey) => {
       }
 
       if (body && method === "DELETE") {
-        ;(options.headers as Record<string, string>)["Content-Type"] = "application/json"
+        const headers = options.headers as Record<string, string>
+        headers["Content-Type"] = "application/json"
         options.body = JSON.stringify(body)
       }
 
@@ -74,6 +78,7 @@ const createDakboardClient = (apiKey: ApiKey) => {
 
     const options = result.orThrow()
 
+    // eslint-disable-next-line functype/prefer-either -- boundary between throwing fetch API and Either-returning client
     try {
       const response = await fetch(url, options)
 
@@ -192,11 +197,12 @@ const createDakboardClient = (apiKey: ApiKey) => {
 
 export type DakboardClient = ReturnType<typeof createDakboardClient>
 
-let client: DakboardClient | undefined
+let client: Option<DakboardClient> = None()
 
 export const initializeDakboardClient = (apiKey: ApiKey): DakboardClient => {
-  client = createDakboardClient(apiKey)
-  return client
+  const c = createDakboardClient(apiKey)
+  client = Some(c)
+  return c
 }
 
-export const getDakboardClient = (): DakboardClient | undefined => client
+export const getDakboardClient = (): Option<DakboardClient> => client
