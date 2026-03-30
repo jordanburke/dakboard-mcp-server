@@ -46,10 +46,30 @@ export const formatScreenList = (screens: DakboardScreen[]): string => {
 ${screens.map(formatScreenSummary).join("\n")}`
 }
 
-export const formatBlockSummary = (block: DakboardBlock): string =>
-  `- **${block.name}** (ID: ${block.id}) — ${block.w}x${block.h} at (${block.x},${block.y})${block.is_disabled ? " [Disabled]" : ""}`
+export const formatBlockSummary = (block: DakboardBlock): string => {
+  const label = block.name || block.type
+  return `- **${label}** (ID: ${block.id}) — ${block.type}, ${block.w}x${block.h} at (${block.x},${block.y})${block.is_disabled ? " [Disabled]" : ""}`
+}
 
 export const formatBlockDetail = (block: DakboardBlockDetail): string => {
+  const label = block.name || block.type
+  // eslint-disable-next-line functype/prefer-option -- accepts nullable input and wraps via Option()
+  const optionalField = (value: string | undefined, prefix: string): string =>
+    Option(value)
+      .map((v) => `\n- ${prefix}: ${v}`)
+      .fold(
+        () => "",
+        (v) => v,
+      )
+
+  const photoUrls = Option(block.photo_urls)
+    .filter((urls) => urls.length > 0)
+    .map((urls) => `\n- Photos:\n${urls.map((u) => `  - ${u}`).join("\n")}`)
+    .fold(
+      () => "",
+      (v) => v,
+    )
+
   const text = Option(block.text)
     .map((t) => `\n\n## Content\n\`\`\`\n${t}\n\`\`\``)
     .fold(
@@ -57,37 +77,15 @@ export const formatBlockDetail = (block: DakboardBlockDetail): string => {
       (v) => v,
     )
 
-  const url = Option(block.url)
-    .map((u) => `\n- URL: ${u}`)
-    .fold(
-      () => "",
-      (v) => v,
-    )
-
-  const blockType = Option(block.block_type)
-    .map((bt) => `\n- Type: ${bt}`)
-    .fold(
-      () => "",
-      (v) => v,
-    )
-
-  const photoUrls = Option(block.photo_urls)
-    .filter((urls) => urls.length > 0)
-    .map((urls) => `\n- Photos: ${urls.length} image(s)`)
-    .fold(
-      () => "",
-      (v) => v,
-    )
-
-  return `# Block: ${block.name}
+  return `# Block: ${label}
 
 ## Details
 - ID: ${block.id}
-- Screen ID: ${block.screen_id}
+- Type: ${block.type}
 - Position: (${block.x}, ${block.y})
 - Size: ${block.w}x${block.h}
 - Z-Index: ${block.z_index}
-- Disabled: ${block.is_disabled ? "Yes" : "No"}${blockType}${url}${photoUrls}
+- Disabled: ${block.is_disabled ? "Yes" : "No"}${optionalField(block.source, "Source")}${optionalField(block.location, "Location")}${optionalField(block.timezone, "Timezone")}${optionalField(block.clock_type, "Clock Type")}${optionalField(block.url, "URL")}${photoUrls}
 - Created: ${block.created_at}
 - Updated: ${block.updated_at}${text}`
 }

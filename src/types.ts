@@ -36,6 +36,7 @@ export type DakboardBlock = {
   id: string
   screen_id: string
   name: string
+  type: string
   w: number
   h: number
   x: number
@@ -50,7 +51,12 @@ export type DakboardBlockDetail = DakboardBlock & {
   text?: string
   photo_urls?: string[]
   url?: string
-  block_type?: string
+  source?: string
+  location?: string
+  lat?: string
+  lon?: string
+  timezone?: string
+  clock_type?: string
 }
 
 export type UpdateBlockParams = {

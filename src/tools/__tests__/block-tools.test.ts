@@ -21,6 +21,7 @@ describe("block-tools", () => {
             id: "b1",
             screen_id: "s1",
             name: "Weather",
+            type: "weather",
             w: 400,
             h: 300,
             x: 0,
@@ -39,6 +40,7 @@ describe("block-tools", () => {
     expect(result.isRight()).toBe(true)
     expect(result.orThrow()).toContain("Blocks for Screen s1")
     expect(result.orThrow()).toContain("Weather")
+    expect(result.orThrow()).toContain("weather")
   })
 
   it("should get block detail", async () => {
@@ -48,6 +50,7 @@ describe("block-tools", () => {
           id: "b1",
           screen_id: "s1",
           name: "Weather",
+          type: "weather",
           w: 400,
           h: 300,
           x: 0,
@@ -55,6 +58,7 @@ describe("block-tools", () => {
           is_disabled: 0,
           z_index: 1,
           text: "Current temp: 72F",
+          location: "Concord, MA",
           created_at: "2024-01-01",
           updated_at: "2024-01-01",
         }),
@@ -66,6 +70,7 @@ describe("block-tools", () => {
     expect(result.isRight()).toBe(true)
     expect(result.orThrow()).toContain("Weather")
     expect(result.orThrow()).toContain("Current temp: 72F")
+    expect(result.orThrow()).toContain("Concord, MA")
   })
 
   it("should update block", async () => {
@@ -75,6 +80,7 @@ describe("block-tools", () => {
           id: "b1",
           screen_id: "s1",
           name: "Updated Weather",
+          type: "weather",
           w: 500,
           h: 300,
           x: 0,

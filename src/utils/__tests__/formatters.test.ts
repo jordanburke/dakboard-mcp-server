@@ -76,6 +76,7 @@ describe("formatters", () => {
       id: "b1",
       screen_id: "s1",
       name: "Weather Widget",
+      type: "weather",
       w: 400,
       h: 300,
       x: 10,
@@ -90,7 +91,7 @@ describe("formatters", () => {
       ...block,
       text: "Hello World",
       url: "https://example.com",
-      block_type: "text",
+      location: "Concord, MA",
       photo_urls: ["https://example.com/photo.jpg"],
     }
 
@@ -98,6 +99,7 @@ describe("formatters", () => {
       const result = formatBlockList([block], "s1")
       expect(result).toContain("Blocks for Screen s1 (1)")
       expect(result).toContain("Weather Widget")
+      expect(result).toContain("weather")
       expect(result).toContain("400x300")
     })
 
@@ -108,10 +110,11 @@ describe("formatters", () => {
     it("should format block detail with all optional fields", () => {
       const result = formatBlockDetail(blockDetail)
       expect(result).toContain("Weather Widget")
+      expect(result).toContain("Type: weather")
       expect(result).toContain("Hello World")
       expect(result).toContain("https://example.com")
-      expect(result).toContain("text")
-      expect(result).toContain("1 image(s)")
+      expect(result).toContain("Concord, MA")
+      expect(result).toContain("photo.jpg")
     })
 
     it("should format block detail without optional fields", () => {
