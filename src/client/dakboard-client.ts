@@ -12,7 +12,6 @@ import type {
   DakboardBlockDetail,
   DakboardDataPoint,
   DakboardDevice,
-  DakboardDeviceDetail,
   DakboardLoop,
   DakboardLoopDetail,
   DakboardMetric,
@@ -145,13 +144,10 @@ const createDakboardClient = (apiKey: ApiKey) => {
   // Devices
   const listDevices = (): Promise<Either<DakboardApiError, DakboardDevice[]>> => request("GET", "/devices")
 
-  const getDevice = (id: DeviceId): Promise<Either<DakboardApiError, DakboardDeviceDetail>> =>
+  const getDevice = (id: DeviceId): Promise<Either<DakboardApiError, DakboardDevice>> =>
     request("GET", `/devices/${id}`)
 
-  const updateDevice = (
-    id: DeviceId,
-    params: UpdateDeviceParams,
-  ): Promise<Either<DakboardApiError, DakboardDeviceDetail>> =>
+  const updateDevice = (id: DeviceId, params: UpdateDeviceParams): Promise<Either<DakboardApiError, DakboardDevice>> =>
     request("PUT", `/devices/${id}`, params as Record<string, unknown>)
 
   // Metrics

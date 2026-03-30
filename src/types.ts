@@ -8,18 +8,34 @@ export type DakboardApiError = {
 export type DakboardScreen = {
   id: string
   name: string
-  is_default: number
-  created_at: string
-  updated_at: string
+  is_default?: number
+  created_at?: string
+  updated_at?: string
+}
+
+export type DakboardScreenSettings = {
+  language?: string
+  timezone?: string
+  font_family?: string
+  font_size?: string
+  font_size_type?: string
+  background_color?: string
+  text_color?: string
+  custom_css?: string
+  time_format?: string
+  date_format?: string
+  increase_legibility?: string
 }
 
 export type DakboardScreenDetail = DakboardScreen & {
-  orientation: string
-  width: number
-  height: number
-  refresh: number
-  background_color: string
-  custom_css?: string
+  orientation?: string
+  width?: number | string
+  height?: number | string
+  refresh?: number
+  version?: string
+  status?: string
+  settings?: DakboardScreenSettings
+  background_color?: string
 }
 
 export type UpdateScreenParams = {
@@ -34,17 +50,17 @@ export type UpdateScreenParams = {
 // Block types
 export type DakboardBlock = {
   id: string
-  screen_id: string
-  name: string
+  screen_id?: string
+  name?: string
   type: string
   w: number
   h: number
   x: number
   y: number
-  is_disabled: number
+  is_disabled?: number
   z_index: number
-  created_at: string
-  updated_at: string
+  created_at?: string
+  updated_at?: string
 }
 
 export type DakboardBlockDetail = DakboardBlock & {
@@ -94,16 +110,15 @@ export type DakboardDevice = {
   name: string
   ip_addr?: string
   screen_id?: string
-  last_seen_at?: string
-  created_at: string
-  updated_at: string
+  serial_num?: string
+  model?: string
+  last_connect?: string
+  screen_type?: string
+  created_at?: string
+  updated_at?: string
 }
 
-export type DakboardDeviceDetail = DakboardDevice & {
-  model?: string
-  firmware_version?: string
-  resolution?: string
-}
+export type DakboardDeviceDetail = DakboardDevice
 
 export type UpdateDeviceParams = {
   name?: string

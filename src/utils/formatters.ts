@@ -5,7 +5,6 @@ import type {
   DakboardBlockDetail,
   DakboardDataPoint,
   DakboardDevice,
-  DakboardDeviceDetail,
   DakboardLoop,
   DakboardLoopDetail,
   DakboardMetric,
@@ -14,29 +13,37 @@ import type {
   DakboardScreenDetail,
 } from "../types"
 
+const optField = (value: string | number | undefined | null, prefix: string): string =>
+  Option(value)
+    .filter((v) => v !== "" && v !== "0" && v !== 0)
+    .map((v) => `\n- ${prefix}: ${v}`)
+    .fold(
+      () => "",
+      (v) => v,
+    )
+
 export const formatScreenSummary = (screen: DakboardScreen): string =>
   `- **${screen.name}** (ID: ${screen.id})${screen.is_default ? " [Default]" : ""}`
 
 export const formatScreenDetail = (screen: DakboardScreenDetail): string => {
-  const customCss = Option(screen.custom_css)
+  const { settings } = screen
+  const bgColor = settings?.background_color ?? screen.background_color
+  const customCss = Option(settings?.custom_css)
+    .filter((css) => css.length > 0)
     .map((css) => `\n- Custom CSS: \`${css.substring(0, 100)}${css.length > 100 ? "..." : ""}\``)
     .fold(
       () => "",
       (v) => v,
     )
 
+  const dimensions =
+    screen.width !== undefined && screen.height !== undefined ? `\n- Dimensions: ${screen.width}x${screen.height}` : ""
+
   return `# Screen: ${screen.name}
 
 ## Details
 - ID: ${screen.id}
-- Name: ${screen.name}
-- Orientation: ${screen.orientation}
-- Dimensions: ${screen.width}x${screen.height}
-- Refresh: ${screen.refresh}s
-- Default: ${screen.is_default ? "Yes" : "No"}
-- Background Color: ${screen.background_color}${customCss}
-- Created: ${screen.created_at}
-- Updated: ${screen.updated_at}`
+- Name: ${screen.name}${optField(screen.orientation, "Orientation")}${dimensions}${optField(screen.refresh, "Refresh (seconds)")}${optField(screen.version, "Version")}${optField(bgColor, "Background Color")}${optField(settings?.text_color, "Text Color")}${optField(settings?.font_family, "Font")}${optField(settings?.timezone, "Timezone")}${optField(settings?.time_format, "Time Format")}${optField(settings?.language, "Language")}${customCss}${optField(screen.created_at, "Created")}${optField(screen.updated_at, "Updated")}`
 }
 
 export const formatScreenList = (screens: DakboardScreen[]): string => {
@@ -47,20 +54,14 @@ ${screens.map(formatScreenSummary).join("\n")}`
 }
 
 export const formatBlockSummary = (block: DakboardBlock): string => {
-  const label = block.name || block.type
-  return `- **${label}** (ID: ${block.id}) — ${block.type}, ${block.w}x${block.h} at (${block.x},${block.y})${block.is_disabled ? " [Disabled]" : ""}`
+  const hasName = block.name !== undefined && block.name.length > 0
+  const label = hasName ? `${block.name} (${block.type})` : block.type
+  return `- **${label}** (ID: ${block.id}) — ${block.w}x${block.h} at (${block.x},${block.y})${block.is_disabled ? " [Disabled]" : ""}`
 }
 
 export const formatBlockDetail = (block: DakboardBlockDetail): string => {
-  const label = block.name || block.type
-  // eslint-disable-next-line functype/prefer-option -- accepts nullable input and wraps via Option()
-  const optionalField = (value: string | undefined, prefix: string): string =>
-    Option(value)
-      .map((v) => `\n- ${prefix}: ${v}`)
-      .fold(
-        () => "",
-        (v) => v,
-      )
+  const hasName = block.name !== undefined && block.name.length > 0
+  const label = hasName ? `${block.name} (${block.type})` : block.type
 
   const photoUrls = Option(block.photo_urls)
     .filter((urls) => urls.length > 0)
@@ -85,9 +86,7 @@ export const formatBlockDetail = (block: DakboardBlockDetail): string => {
 - Position: (${block.x}, ${block.y})
 - Size: ${block.w}x${block.h}
 - Z-Index: ${block.z_index}
-- Disabled: ${block.is_disabled ? "Yes" : "No"}${optionalField(block.source, "Source")}${optionalField(block.location, "Location")}${optionalField(block.timezone, "Timezone")}${optionalField(block.clock_type, "Clock Type")}${optionalField(block.url, "URL")}${photoUrls}
-- Created: ${block.created_at}
-- Updated: ${block.updated_at}${text}`
+- Disabled: ${block.is_disabled ? "Yes" : "No"}${optField(block.source, "Source")}${optField(block.location, "Location")}${optField(block.timezone, "Timezone")}${optField(block.clock_type, "Clock Type")}${optField(block.url, "URL")}${photoUrls}${optField(block.created_at, "Created")}${optField(block.updated_at, "Updated")}${text}`
 }
 
 export const formatBlockList = (blocks: DakboardBlock[], screenId: string): string => {
@@ -134,44 +133,13 @@ export const formatDeviceSummary = (device: DakboardDevice): string => {
   return `- **${device.name}** (ID: ${device.id})${ip}`
 }
 
-export const formatDeviceDetail = (device: DakboardDeviceDetail): string => {
-  const ip = Option(device.ip_addr)
-    .map((v) => `\n- IP Address: ${v}`)
-    .fold(
-      () => "",
-      (v) => v,
-    )
-
-  const screenId = Option(device.screen_id)
-    .map((v) => `\n- Screen ID: ${v}`)
-    .fold(
-      () => "",
-      (v) => v,
-    )
-
-  const lastSeen = Option(device.last_seen_at)
-    .map((v) => `\n- Last Seen: ${v}`)
-    .fold(
-      () => "",
-      (v) => v,
-    )
-
-  const model = Option(device.model)
-    .map((v) => `\n- Model: ${v}`)
-    .fold(
-      () => "",
-      (v) => v,
-    )
-
-  const firmware = Option(device.firmware_version)
-    .map((v) => `\n- Firmware: ${v}`)
-    .fold(
-      () => "",
-      (v) => v,
-    )
-
-  const resolution = Option(device.resolution)
-    .map((v) => `\n- Resolution: ${v}`)
+export const formatDeviceDetail = (device: DakboardDevice): string => {
+  const lastConnect = Option(device.last_connect)
+    .filter((v) => v !== "0")
+    .map((v) => {
+      const date = new Date(Number(v) * 1000)
+      return `\n- Last Connected: ${date.toISOString()}`
+    })
     .fold(
       () => "",
       (v) => v,
@@ -181,9 +149,7 @@ export const formatDeviceDetail = (device: DakboardDeviceDetail): string => {
 
 ## Details
 - ID: ${device.id}
-- Name: ${device.name}${ip}${screenId}${lastSeen}${model}${firmware}${resolution}
-- Created: ${device.created_at}
-- Updated: ${device.updated_at}`
+- Name: ${device.name}${optField(device.model, "Model")}${optField(device.serial_num, "Serial")}${optField(device.ip_addr, "IP Address")}${optField(device.screen_id, "Screen ID")}${optField(device.screen_type, "Screen Type")}${lastConnect}${optField(device.created_at, "Created")}${optField(device.updated_at, "Updated")}`
 }
 
 export const formatDeviceList = (devices: DakboardDevice[]): string => {

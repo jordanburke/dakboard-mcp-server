@@ -4,7 +4,6 @@ import type {
   DakboardBlock,
   DakboardBlockDetail,
   DakboardDevice,
-  DakboardDeviceDetail,
   DakboardLoop,
   DakboardLoopDetail,
   DakboardMetric,
@@ -41,8 +40,12 @@ describe("formatters", () => {
       width: 1920,
       height: 1080,
       refresh: 300,
-      background_color: "#000000",
-      custom_css: ".widget { color: red; }",
+      settings: {
+        background_color: "#000000",
+        custom_css: ".widget { color: red; }",
+        font_family: "Roboto",
+        timezone: "America/New_York",
+      },
     }
 
     it("should format screen list", () => {
@@ -65,7 +68,10 @@ describe("formatters", () => {
     })
 
     it("should format screen detail without custom CSS", () => {
-      const withoutCss: DakboardScreenDetail = { ...screenDetail, custom_css: undefined }
+      const withoutCss: DakboardScreenDetail = {
+        ...screenDetail,
+        settings: { ...screenDetail.settings, custom_css: undefined },
+      }
       const result = formatScreenDetail(withoutCss)
       expect(result).not.toContain("Custom CSS")
     })
@@ -173,16 +179,11 @@ describe("formatters", () => {
       name: "Kitchen Pi",
       ip_addr: "192.168.1.100",
       screen_id: "s1",
-      last_seen_at: "2024-06-15T12:00:00Z",
+      serial_num: "ABC123",
+      model: "Raspberry Pi 4",
+      last_connect: "1718452800",
       created_at: "2024-01-01",
       updated_at: "2024-06-15",
-    }
-
-    const deviceDetail: DakboardDeviceDetail = {
-      ...device,
-      model: "Raspberry Pi 4",
-      firmware_version: "2.1.0",
-      resolution: "1920x1080",
     }
 
     it("should format device list", () => {
@@ -197,20 +198,18 @@ describe("formatters", () => {
     })
 
     it("should format device detail with all fields", () => {
-      const result = formatDeviceDetail(deviceDetail)
+      const result = formatDeviceDetail(device)
       expect(result).toContain("Kitchen Pi")
       expect(result).toContain("192.168.1.100")
       expect(result).toContain("Raspberry Pi 4")
-      expect(result).toContain("2.1.0")
-      expect(result).toContain("1920x1080")
+      expect(result).toContain("ABC123")
+      expect(result).toContain("Last Connected")
     })
 
     it("should format device detail without optional fields", () => {
-      const minimal: DakboardDeviceDetail = {
+      const minimal: DakboardDevice = {
         id: "d2",
         name: "New Device",
-        created_at: "2024-01-01",
-        updated_at: "2024-06-15",
       }
       const result = formatDeviceDetail(minimal)
       expect(result).toContain("New Device")
