@@ -54,13 +54,13 @@ ${screens.map(formatScreenSummary).join("\n")}`
 }
 
 export const formatBlockSummary = (block: DakboardBlock): string => {
-  const hasName = block.name !== undefined && block.name.length > 0
+  const hasName = block.name != null && block.name.length > 0
   const label = hasName ? `${block.name} (${block.type})` : block.type
   return `- **${label}** (ID: ${block.id}) — ${block.w}x${block.h} at (${block.x},${block.y})${block.is_disabled ? " [Disabled]" : ""}`
 }
 
 export const formatBlockDetail = (block: DakboardBlockDetail): string => {
-  const hasName = block.name !== undefined && block.name.length > 0
+  const hasName = block.name != null && block.name.length > 0
   const label = hasName ? `${block.name} (${block.type})` : block.type
 
   const photoUrls = Option(block.photo_urls)

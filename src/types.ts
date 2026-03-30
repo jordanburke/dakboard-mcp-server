@@ -51,7 +51,8 @@ export type UpdateScreenParams = {
 export type DakboardBlock = {
   id: string
   screen_id?: string
-  name?: string
+  // eslint-disable-next-line functype/prefer-option -- API returns null for unnamed blocks
+  name?: string | null
   type: string
   w: number
   h: number
