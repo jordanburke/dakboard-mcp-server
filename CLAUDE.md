@@ -64,6 +64,17 @@ src/
 - **Form-encoded PUT bodies**: DAKboard API uses `application/x-www-form-urlencoded` for updates.
 - **API key as query param**: `?api_key=...` appended to every request.
 
+### DAKboard Coordinate System (CRITICAL)
+
+DAKboard uses a **non-linear, per-block scaling** to convert API coordinates (x, y, w, h) into CSS percentages for rendering. The scaling factor is computed server-side and varies per block — there is no single formula to convert API coordinates to screen positions.
+
+**When updating blocks via the API, coordinates are recomputed using a different (approximately 1:1) scaling.** This means:
+
+- **Setting a block back to its original API value will NOT restore its original visual position.** The scaling factor changes after an update.
+- **Use rendered pixel values (at 1920x1080 design resolution) as API coordinate values** when making updates. For example, if a block should be 680px wide on a 1920x1080 screen, set `w=680` in the API call.
+- **The `visualize_screen_layout` tool** with `screen_uuid` fetches the actual CSS percentages from the public screen page for accurate layout visualization. Without the UUID, it falls back to API coordinates which may not match the visual layout.
+- **Screen UUIDs** are not available via the API. They must be obtained from the DAKboard web app URL: `https://dakboard.com/screen/uuid/{UUID}`.
+
 ### Environment Variables
 
 - `DAKBOARD_API_KEY` (required) — DAKboard API key
@@ -73,7 +84,7 @@ src/
 
 ## Key Files
 
-- `src/index.ts` — FastMCP server with all 16 tool registrations
+- `src/index.ts` — FastMCP server with all 17 tool registrations
 - `src/bin.ts` — CLI entry point
 - `src/client/dakboard-client.ts` — Functional API client
 - `src/brands.ts` — Branded type constructors
