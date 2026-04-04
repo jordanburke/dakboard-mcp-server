@@ -55,11 +55,12 @@ export DAKBOARD_API_KEY=your_api_key
 
 ### Blocks
 
-| Tool           | Description                                          |
-| -------------- | ---------------------------------------------------- |
-| `list_blocks`  | List all blocks on a screen                          |
-| `get_block`    | Get detailed block information                       |
-| `update_block` | Update block position, size, content, and visibility |
+| Tool                      | Description                                                                         |
+| ------------------------- | ----------------------------------------------------------------------------------- |
+| `list_blocks`             | List all blocks on a screen                                                         |
+| `get_block`               | Get detailed block information                                                      |
+| `update_block`            | Update block position, size, content, and visibility                                |
+| `visualize_screen_layout` | Visualize spatial layout as ASCII diagram (provide screen_uuid for accurate layout) |
 
 ### Loops
 

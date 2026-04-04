@@ -38,7 +38,7 @@ pnpm test -- src/tools/__tests__/screen-tools.test.ts
 
 ```
 src/
-  index.ts                    # FastMCP server setup + 16 tool registrations
+  index.ts                    # FastMCP server setup + 17 tool registrations
   bin.ts                      # CLI entry point (stdio transport)
   types.ts                    # Domain types + API response types
   brands.ts                   # Branded types: ScreenId, BlockId, LoopId, DeviceId, MetricName, ApiKey
@@ -47,12 +47,13 @@ src/
   tools/
     index.ts                  # Barrel export
     screen-tools.ts           # list_screens, get_screen, update_screen
-    block-tools.ts            # list_blocks, get_block, update_block
+    block-tools.ts            # list_blocks, get_block, update_block, visualize_screen_layout
     loop-tools.ts             # list_loops, get_loop
     device-tools.ts           # list_devices, get_device, update_device
     metric-tools.ts           # list/get/create/delete metrics + data points
   utils/
     formatters.ts             # Markdown response formatters using Option for nullable fields
+    layout.ts                 # ASCII layout renderer — parses CSS percentages from public screen page
 ```
 
 ### Key Patterns

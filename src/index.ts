@@ -23,6 +23,7 @@ import {
   updateBlock,
   updateDevice,
   updateScreen,
+  visualizeLayout,
 } from "./tools"
 
 dotenv.config()
@@ -156,6 +157,20 @@ server.addTool({
     url: z.string().optional().describe("URL content"),
   }),
   execute: async (args) => unwrapResult(await updateBlock(args)),
+})
+
+server.addTool({
+  name: "visualize_screen_layout",
+  description:
+    "Visualize the spatial layout of blocks on a DAKboard screen as an ASCII diagram. Provide screen_uuid for accurate CSS-based rendering (from the public screen URL), otherwise falls back to API coordinates.",
+  parameters: z.object({
+    screen_id: z.string().describe("The DAKboard screen ID"),
+    screen_uuid: z
+      .string()
+      .optional()
+      .describe("The screen UUID from the public URL (e.g. '65ac6663-13508f-ea84-b4dd5a6c6616') for accurate layout"),
+  }),
+  execute: async (args) => unwrapResult(await visualizeLayout(args)),
 })
 
 // Loop tools
