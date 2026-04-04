@@ -220,5 +220,26 @@ export const formatBlockLayout = (blocks: DakboardBlock[], pctMap?: Map<string, 
   const modeNote = hasPct ? " (CSS percentages)" : " (API coordinates)"
   const summary = `\n\nLayout: ${blocks.length} blocks${modeNote}${disabledNote}`
 
-  return diagram + legend + summary
+  // When CSS percentages are available, include rendered pixel positions for use with update_block
+  const pixelTable = hasPct
+    ? `\n\n## Block Positions (use these values with update_block)\n${blocks
+        .map((b) => {
+          const htmlId = idMap.get(b.id) ?? b.id
+          const pct = pctMap?.get(htmlId)
+          if (!pct) return null
+          const px = {
+            x: Math.round((pct.pctX / 100) * 1920),
+            y: Math.round((pct.pctY / 100) * 1080),
+            w: Math.round((pct.pctW / 100) * 1920),
+            h: Math.round((pct.pctH / 100) * 1080),
+          }
+          const label = blockLabel(b)
+          const disabled = b.is_disabled === 1 ? " [Disabled]" : ""
+          return `- **${label}**${disabled} (${b.id}): x=${px.x}, y=${px.y}, w=${px.w}, h=${px.h}`
+        })
+        .filter((line) => line != null)
+        .join("\n")}`
+    : ""
+
+  return diagram + legend + summary + pixelTable
 }

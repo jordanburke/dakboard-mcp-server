@@ -142,15 +142,20 @@ server.addTool({
 
 server.addTool({
   name: "update_block",
-  description: "Update a block on a DAKboard screen (position, size, content, visibility)",
+  description:
+    "Update a block on a DAKboard screen (position, size, content, visibility). " +
+    "IMPORTANT: DAKboard uses non-linear per-block coordinate scaling. The API coordinate values (x, y, w, h) " +
+    "do NOT map 1:1 to screen pixels, and updating a block changes its scaling factor permanently. " +
+    "Use rendered pixel values at 1920x1080 design resolution as coordinate values. " +
+    "Use visualize_screen_layout with screen_uuid first to see the actual layout before making changes.",
   parameters: z.object({
     screen_id: z.string().describe("The DAKboard screen ID"),
     block_id: z.string().describe("The block ID"),
     name: z.string().optional().describe("Block name"),
-    w: z.number().optional().describe("Width"),
-    h: z.number().optional().describe("Height"),
-    x: z.number().optional().describe("X position"),
-    y: z.number().optional().describe("Y position"),
+    w: z.number().optional().describe("Width in pixels at 1920x1080 design resolution"),
+    h: z.number().optional().describe("Height in pixels at 1920x1080 design resolution"),
+    x: z.number().optional().describe("X position in pixels at 1920x1080 design resolution"),
+    y: z.number().optional().describe("Y position in pixels at 1920x1080 design resolution"),
     is_disabled: z.number().min(0).max(1).optional().describe("Disable block (0 or 1)"),
     z_index: z.number().optional().describe("Z-index for layering"),
     text: z.string().optional().describe("Text content"),
