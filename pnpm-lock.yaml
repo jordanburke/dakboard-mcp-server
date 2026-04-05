@@ -14,8 +14,8 @@ importers:
         specifier: ^3.35.0
         version: 3.35.0
       functype:
-        specifier: ^0.52.0
-        version: 0.52.0
+        specifier: ^0.56.0
+        version: 0.56.0
       zod:
         specifier: ^4.3.6
         version: 4.3.6
@@ -1519,14 +1519,14 @@ packages:
     peerDependencies:
       functype: ">=0.54.0"
 
-  functype@0.52.0:
-    resolution:
-      { integrity: sha512-YZsnpniDXTJdPeIYPsrMB4XN1unz2P/iZogqvujEHOTCX5vlTZIfc2fsINDOIdFrv1vYuEayhNs4apw5fX/KEQ== }
-    hasBin: true
-
   functype@0.54.0:
     resolution:
       { integrity: sha512-4SqEbfQIVDwHHwpy6SH+zSLNqgPPSf8jmsWpVYAv+pXjfA3YcRQ3A9Y3sEZOeju15f6rMQ0M5FJMK/nZcTVJyQ== }
+    hasBin: true
+
+  functype@0.56.0:
+    resolution:
+      { integrity: sha512-+NtRIygEL2UKl4b/EqALjk/bVEb0+LX3hxIXrk0o7zdK1rNIUYqtQM3nUUnqLp6FAGL/MPaIbRAcIe6wBh1aXA== }
     hasBin: true
 
   fuse.js@7.3.0:
@@ -3785,9 +3785,9 @@ snapshots:
     dependencies:
       functype: 0.54.0
 
-  functype@0.52.0: {}
-
   functype@0.54.0: {}
+
+  functype@0.56.0: {}
 
   fuse.js@7.3.0: {}
 
