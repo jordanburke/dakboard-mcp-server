@@ -63,7 +63,7 @@
   "homepage": "https://github.com/jordanburke/dakboard-mcp-server#readme",
   "dependencies": {
     "dotenv": "^17.4.0",
-    "fastmcp": "^3.35.0",
+    "fastmcp": "^4.0.0",
     "functype": "^0.56.0",
     "zod": "^4.3.6"
   },
