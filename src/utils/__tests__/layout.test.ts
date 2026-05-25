@@ -1,3 +1,4 @@
+import { Map } from "functype"
 import { describe, expect, it } from "vitest"
 
 import type { DakboardBlock } from "../../types"
@@ -26,7 +27,7 @@ const bigCalendarBlocks: DakboardBlock[] = [
 ]
 
 // Simulated CSS percentages from the actual DAKboard page
-const bigCalendarPctMap = new Map([
+const bigCalendarPctMap = Map([
   ["65ac66634830c0612e6b89a4", { pctX: 35.356, pctY: 0, pctW: 64.645, pctH: 99.997 }],
   ["65ac66634830c0612e6b89a5", { pctX: 0, pctY: 0, pctW: 99.998, pctH: 99.997 }],
   ["65ac66634830c0612e6b89a6", { pctX: 1.316, pctY: 65.657, pctW: 31.259, pctH: 33.925 }],
@@ -85,7 +86,7 @@ describe("formatBlockLayout", () => {
       { id: "blk_bg1", type: "photos", w: 1000, h: 1000, x: 0, y: 0, z_index: 0 },
       { id: "blk_fg1", type: "clock", w: 100, h: 100, x: 10, y: 10, z_index: 1 },
     ]
-    const pctMap = new Map([
+    const pctMap = Map([
       ["bg1", { pctX: 0, pctY: 0, pctW: 100, pctH: 100 }],
       ["fg1", { pctX: 10, pctY: 10, pctW: 20, pctH: 20 }],
     ])
@@ -117,12 +118,11 @@ describe("parseScreenPagePercentages", () => {
     `
     const result = parseScreenPagePercentages(html)
     expect(result.size).toBe(1)
-    const pct = result.get("abc123def456abc123def456")
-    expect(pct).toBeDefined()
-    expect(pct?.pctW).toBeCloseTo(64.645)
-    expect(pct?.pctH).toBeCloseTo(99.997)
-    expect(pct?.pctX).toBeCloseTo(35.356)
-    expect(pct?.pctY).toBe(0)
+    const pct = result.get("abc123def456abc123def456").orThrow()
+    expect(pct.pctW).toBeCloseTo(64.645)
+    expect(pct.pctH).toBeCloseTo(99.997)
+    expect(pct.pctX).toBeCloseTo(35.356)
+    expect(pct.pctY).toBe(0)
   })
 
   it("should return empty map for HTML without blocks", () => {

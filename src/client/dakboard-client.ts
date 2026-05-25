@@ -193,12 +193,12 @@ const createDakboardClient = (apiKey: ApiKey) => {
 
 export type DakboardClient = ReturnType<typeof createDakboardClient>
 
-let client: Option<DakboardClient> = None()
+const clientRef: { current: Option<DakboardClient> } = { current: None() }
 
 export const initializeDakboardClient = (apiKey: ApiKey): DakboardClient => {
   const c = createDakboardClient(apiKey)
-  client = Some(c)
+  clientRef.current = Some(c)
   return c
 }
 
-export const getDakboardClient = (): Option<DakboardClient> => client
+export const getDakboardClient = (): Option<DakboardClient> => clientRef.current

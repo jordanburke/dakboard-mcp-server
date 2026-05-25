@@ -1,9 +1,11 @@
+import { Map } from "functype"
+
 import type { DakboardBlock } from "../types"
 
 const GRID_W = 76
 const GRID_H = 24
 
-type BlockPercentages = {
+export type BlockPercentages = {
   pctX: number
   pctY: number
   pctW: number
@@ -22,6 +24,8 @@ type NormalizedBlock = {
   isBackground: boolean
 }
 
+const ZERO_PCT: BlockPercentages = { pctX: 0, pctY: 0, pctW: 0, pctH: 0 }
+
 const truncateLabel = (label: string, maxWidth: number): string => {
   if (label.length <= maxWidth) return label
   if (maxWidth >= 4) return `${label.substring(0, maxWidth - 1)}~`
@@ -32,11 +36,9 @@ const truncateLabel = (label: string, maxWidth: number): string => {
 const blockLabel = (block: DakboardBlock): string => (block.name != null && block.name !== "" ? block.name : block.type)
 
 const normalizeFromPercentages = (blocks: DakboardBlock[], pctMap: Map<string, BlockPercentages>): NormalizedBlock[] =>
-  blocks.map((block) => {
-    const pct = pctMap.get(block.id)
-    if (!pct) {
-      // Fallback: skip blocks without percentage data
-      return {
+  blocks.map((block) =>
+    pctMap.get(block.id).fold(
+      (): NormalizedBlock => ({
         gx: 0,
         gy: 0,
         gw: 0,
@@ -46,27 +48,28 @@ const normalizeFromPercentages = (blocks: DakboardBlock[], pctMap: Map<string, B
         zIndex: block.z_index,
         id: block.id,
         isBackground: false,
-      }
-    }
+      }),
+      (pct): NormalizedBlock => {
+        const gx = Math.min(Math.round((pct.pctX / 100) * GRID_W), GRID_W - 2)
+        const gy = Math.min(Math.round((pct.pctY / 100) * GRID_H), GRID_H - 2)
+        const gw = Math.max(2, Math.round((pct.pctW / 100) * GRID_W))
+        const gh = Math.max(2, Math.round((pct.pctH / 100) * GRID_H))
+        const isBg = pct.pctW > 95 && pct.pctH > 95
 
-    const gx = Math.min(Math.round((pct.pctX / 100) * GRID_W), GRID_W - 2)
-    const gy = Math.min(Math.round((pct.pctY / 100) * GRID_H), GRID_H - 2)
-    const gw = Math.max(2, Math.round((pct.pctW / 100) * GRID_W))
-    const gh = Math.max(2, Math.round((pct.pctH / 100) * GRID_H))
-    const isBg = pct.pctW > 95 && pct.pctH > 95
-
-    return {
-      gx,
-      gy,
-      gw: Math.min(gw, GRID_W - gx),
-      gh: Math.min(gh, GRID_H - gy),
-      label: blockLabel(block),
-      isDisabled: block.is_disabled === 1,
-      zIndex: block.z_index,
-      id: block.id,
-      isBackground: isBg,
-    }
-  })
+        return {
+          gx,
+          gy,
+          gw: Math.min(gw, GRID_W - gx),
+          gh: Math.min(gh, GRID_H - gy),
+          label: blockLabel(block),
+          isDisabled: block.is_disabled === 1,
+          zIndex: block.z_index,
+          id: block.id,
+          isBackground: isBg,
+        }
+      },
+    ),
+  )
 
 const normalizeFromCoordinates = (blocks: DakboardBlock[]): NormalizedBlock[] => {
   const canvasW = Math.max(...blocks.map((b) => b.x + b.w))
@@ -97,7 +100,7 @@ const normalizeFromCoordinates = (blocks: DakboardBlock[]): NormalizedBlock[] =>
   })
 }
 
-/* eslint-disable functype/no-imperative-loops -- character grid drawing is inherently imperative */
+/* eslint-disable functype/no-imperative-loops, functype/no-let -- 2D character-grid drawing is inherently imperative */
 const drawBlock = (grid: string[][], gx: number, gy: number, gw: number, gh: number, isDisabled: boolean): void => {
   const hEdge = isDisabled ? "╌" : "─"
   const vEdge = isDisabled ? "╎" : "│"
@@ -159,47 +162,46 @@ const renderGrid = (
       }
     }
   }
-  /* eslint-enable functype/no-imperative-loops */
+  /* eslint-enable functype/no-imperative-loops, functype/no-let */
 
   const diagram = grid.map((row) => row.join("").trimEnd()).join("\n")
   return { diagram, legendEntries }
 }
 
 export const parseScreenPagePercentages = (html: string): Map<string, BlockPercentages> => {
-  const pctMap = new Map<string, BlockPercentages>()
-  // Match block divs with id and inline style containing CSS custom properties
   const blockRegex =
     /id="([a-f0-9]{24,})"[^>]*style="[^"]*--block-width:\s*([\d.]+)%[^"]*--block-height:\s*([\d.]+)%[^"]*--block-x:\s*([\d.]+)%[^"]*--block-y:\s*([\d.]+)%/g
-  let match = blockRegex.exec(html)
-  // eslint-disable-next-line functype/no-imperative-loops -- regex iteration
-  while (match != null) {
-    pctMap.set(match[1], {
-      pctW: parseFloat(match[2]),
-      pctH: parseFloat(match[3]),
-      pctX: parseFloat(match[4]),
-      pctY: parseFloat(match[5]),
-    })
-    match = blockRegex.exec(html)
-  }
-  return pctMap
+
+  const entries = Array.from(html.matchAll(blockRegex), (m): [string, BlockPercentages] => [
+    m[1],
+    {
+      pctW: parseFloat(m[2]),
+      pctH: parseFloat(m[3]),
+      pctX: parseFloat(m[4]),
+      pctY: parseFloat(m[5]),
+    },
+  ])
+
+  return Map(entries)
 }
 
-export const formatBlockLayout = (blocks: DakboardBlock[], pctMap?: Map<string, BlockPercentages>): string => {
+export const formatBlockLayout = (
+  blocks: DakboardBlock[],
+  pctMap: Map<string, BlockPercentages> = Map.empty<string, BlockPercentages>(),
+): string => {
   if (blocks.length === 0) return "No blocks to visualize."
 
-  // Strip "blk_" prefix from block IDs to match HTML element IDs
-  const idMap = new Map<string, string>()
-  blocks.forEach((b) => {
-    const htmlId = b.id.startsWith("blk_") ? b.id.slice(4) : b.id
-    idMap.set(b.id, htmlId)
-  })
+  const idMap = Map(blocks.map((b): [string, string] => [b.id, b.id.startsWith("blk_") ? b.id.slice(4) : b.id]))
 
-  const hasPct = pctMap != null && pctMap.size > 0
+  const hasPct = !pctMap.isEmpty
   const normalized = hasPct
     ? normalizeFromPercentages(
         blocks,
-        new Map(
-          blocks.map((b) => [b.id, pctMap.get(idMap.get(b.id) ?? b.id) ?? { pctX: 0, pctY: 0, pctW: 0, pctH: 0 }]),
+        Map(
+          blocks.map((b): [string, BlockPercentages] => [
+            b.id,
+            pctMap.get(idMap.get(b.id).orElse(b.id)).orElse(ZERO_PCT),
+          ]),
         ),
       )
     : normalizeFromCoordinates(blocks)
@@ -220,24 +222,25 @@ export const formatBlockLayout = (blocks: DakboardBlock[], pctMap?: Map<string, 
   const modeNote = hasPct ? " (CSS percentages)" : " (API coordinates)"
   const summary = `\n\nLayout: ${blocks.length} blocks${modeNote}${disabledNote}`
 
-  // When CSS percentages are available, include rendered pixel positions for use with update_block
   const pixelTable = hasPct
     ? `\n\n## Block Positions (use these values with update_block)\n${blocks
-        .map((b) => {
-          const htmlId = idMap.get(b.id) ?? b.id
-          const pct = pctMap?.get(htmlId)
-          if (!pct) return null
-          const px = {
-            x: Math.round((pct.pctX / 100) * 1920),
-            y: Math.round((pct.pctY / 100) * 1080),
-            w: Math.round((pct.pctW / 100) * 1920),
-            h: Math.round((pct.pctH / 100) * 1080),
-          }
-          const label = blockLabel(b)
-          const disabled = b.is_disabled === 1 ? " [Disabled]" : ""
-          return `- **${label}**${disabled} (${b.id}): x=${px.x}, y=${px.y}, w=${px.w}, h=${px.h}`
-        })
-        .filter((line) => line != null)
+        .map((b) =>
+          pctMap.get(idMap.get(b.id).orElse(b.id)).fold(
+            () => null,
+            (pct) => {
+              const px = {
+                x: Math.round((pct.pctX / 100) * 1920),
+                y: Math.round((pct.pctY / 100) * 1080),
+                w: Math.round((pct.pctW / 100) * 1920),
+                h: Math.round((pct.pctH / 100) * 1080),
+              }
+              const label = blockLabel(b)
+              const disabled = b.is_disabled === 1 ? " [Disabled]" : ""
+              return `- **${label}**${disabled} (${b.id}): x=${px.x}, y=${px.y}, w=${px.w}, h=${px.h}`
+            },
+          ),
+        )
+        .filter((line): line is string => line != null)
         .join("\n")}`
     : ""
 

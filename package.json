@@ -62,15 +62,15 @@
   },
   "homepage": "https://github.com/jordanburke/dakboard-mcp-server#readme",
   "dependencies": {
-    "dotenv": "^17.4.0",
-    "fastmcp": "^3.35.0",
-    "functype": "^0.56.0",
-    "zod": "^4.3.6"
+    "dotenv": "^17.4.2",
+    "fastmcp": "^4.0.1",
+    "functype": "^0.60.7",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^24.12.2",
-    "ts-builds": "^2.6.3",
-    "tsdown": "^0.21.7"
+    "@types/node": "^24.12.4",
+    "ts-builds": "^2.8.1",
+    "tsdown": "^0.22.0"
   },
   "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319"
 }
